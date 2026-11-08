@@ -1,0 +1,21 @@
+export const colors = {
+  background: '#FFF7BC',
+  mint: '#91D5B5',
+  coral: '#FFA99A',
+  lavender: '#C9B3E6',
+  skyBlue: '#C9D9F7',
+  warmYellow: '#F9DC78',
+  card: '#FFFEFA',
+  mintWash: '#E8F5EC',
+  coralWash: '#FFF0EC',
+  lavenderWash: '#F2ECF8',
+  skyBlueWash: '#EEF3FC',
+  warmYellowWash: '#FFF8DC',
+  hairline: 'rgba(48, 51, 47, 0.08)',
+  textPrimary: '#30332F',
+  textSecondary: '#706F68',
+  // Accessible focus / disabled tones derived from the palette.
+  textOnMint: '#1F3A2E',
+  disabled: '#D9D6C3',
+  danger: '#B3261E',
+};

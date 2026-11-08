@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.expo/
+web-build/
+android/
+ios/
+*.apk
+*.aab
+.DS_Store
+npm-debug.log*
+coverage/

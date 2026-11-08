@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Solace AI",
+    "slug": "solace-ai",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "solace",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFF7BC",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#FFF7BC",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "bundleIdentifier": "com.solaceai.app",
+      "buildNumber": "1",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.solaceai.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF7BC"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#91D5B5"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Solace uses your location once, only when you tap 'Use my city', to find therapists near you. Your coordinates stay on your phone."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Solace uses your photos only when you choose a profile picture."
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
