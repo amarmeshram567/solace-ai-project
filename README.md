@@ -5,7 +5,7 @@ Solace AI is a calm, reference-inspired wellness companion. This archive contain
 - **Phase 1 — Foundation:** Expo app with Expo Router and theme; Express API under `/api/v1`; full PostgreSQL schema (Prisma); JWT auth with rotating refresh tokens.
 - **Phase 2 — Visual foundation:** splash, persisted onboarding, auth screens, forgot/reset password, profile setup, home dashboard, bottom tabs.
 - **Phase 3 — Wellness features:** mood check-in (with duplicate protection), mood history with edit/delete and weekly/monthly view, three self-reflection assessments with transparent scoring, breathing session with a synchronised circle, wellness resources and activities.
-- **Phase 4 — AI companion:** Zen Monk chat backed by a self-hosted Ollama model, persistent conversations, deleting messages, context-limited prompts, optional personalisation, safety handling, and activity suggestions that link to app screens.
+- **Phase 4 — AI companion:** Zen Monk chat backed by Google Gemini, persistent conversations, deleting messages, context-limited prompts, optional personalisation, safety handling, and activity suggestions that link to app screens.
 - **Phase 5 — Progress:** progress dashboard (weekly and monthly), levels, streaks, XP history, milestones calculated from real records, and recent self-check history.
 - **Phase 6 — Reminders, directory and privacy:** daily reminder settings with time and day choices, custom reminders (up to ten), an in-app reminder inbox, optional push delivery through Expo, a therapist directory, AI personalisation controls, chat clearing, data export, and account deletion.
 - **Phase 7 — Testing and refinement:** unit tests for the pure logic (`npm test`). They found and fixed two real bugs: crisis detection missed common phrasings, and reminder keyword rules matched inside unrelated words. Production now refuses to start with the placeholder JWT secrets.
@@ -22,7 +22,7 @@ Solace AI is a calm, reference-inspired wellness companion. This archive contain
 | Assessments: Mood Vibes, Anxiety Check, Self-love Meter, results and history | Implemented. Anxiety Check is an informal reflection, not a validated clinical instrument |
 | Breathing: configurable pattern, pause/resume/restart, exit confirmation, haptics, saved sessions | Implemented. The default pattern is 4-4-4-4 for 5 rounds. Ambient sound is not included |
 | Wellness resources (5) and activities (4) with interactive steps | Implemented |
-| Zen Monk chat: conversations, rename/delete, message delete, suggestions, typing indicator, errors, safety | Implemented. Needs a running Ollama model (see below) |
+| Zen Monk chat: conversations, rename/delete, message delete, suggestions, typing indicator, errors, safety | Implemented. Needs a Gemini API key configured on the server |
 | Clear all Zen Monk chats; AI personalisation switch (off by default) | Implemented |
 | XP awards, levels and daily streaks | Implemented |
 | Progress dashboard (week and month), level, streak, mood trend and distribution | Implemented |
@@ -44,7 +44,7 @@ Solace AI is a calm, reference-inspired wellness companion. This archive contain
 - Node.js 20.19+ (required by current Expo SDK) and npm.
 - A PostgreSQL database. Neon works: create a project, copy the connection string with `sslmode=require`.
 - Android Studio emulator, or a development build on a physical device.
-- (Optional, for AI) Ollama installed locally with a model pulled, e.g. `ollama pull qwen2.5:3b`.
+- (Optional, for AI chat) A Google Gemini API key configured on the server.
 
 ## 1. Backend
 
@@ -80,14 +80,9 @@ Reminders are created by a scheduler that runs every minute inside the API proce
 - Each reminder is created at most once per local day, enforced by a unique key in the database.
 - `PUSH_DELIVERY=expo` also sends each reminder to the user's registered devices through Expo. Tokens that Expo reports as unregistered are removed.
 
-### Zen Monk (Phase 4): run a local model
+### Zen Monk (Phase 4): Gemini
 
-```bash
-ollama pull qwen2.5:3b
-ollama serve                  # listens on http://localhost:11434
-```
-
-Set `AI_PROVIDER=ollama` and `OLLAMA_BASE_URL` in `server/.env`. If Ollama is not running, Zen Monk shows a clear "unavailable" message. It never invents replies.
+Set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and optionally `GEMINI_MODEL` in `server/.env`. The default model is `gemini-3.5-flash-lite`. The key stays on the server and must never be added to the mobile app or an `EXPO_PUBLIC_` variable. If Gemini is unavailable, Zen Monk shows a clear "unavailable" message rather than inventing replies. Set `AI_PROVIDER=disabled` to turn off model chat.
 
 ## 2. Mobile app
 

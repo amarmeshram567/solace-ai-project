@@ -13,9 +13,9 @@ const schema = z.object({
     .string()
     .default('http://localhost:8081')
     .transform((s) => s.split(',').map((o) => o.trim()).filter(Boolean)),
-  AI_PROVIDER: z.enum(['ollama', 'disabled']).default('ollama'),
-  OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
-  OLLAMA_MODEL: z.string().default('qwen2.5:3b'),
+  AI_PROVIDER: z.enum(['gemini', 'disabled']).default('gemini'),
+  GEMINI_API_KEY: z.string().default(''),
+  GEMINI_MODEL: z.string().default('gemini-3.5-flash-lite'),
   // "console" prints reset codes to the server log (development only).
   // Production must use a real mail provider; see services/email.service.js.
   EMAIL_DELIVERY: z.enum(['console', 'disabled']).default('console'),
@@ -36,6 +36,10 @@ if (!parsed.success) {
   throw new Error(`Invalid environment configuration:\n${problems}`);
 }
 
+if (parsed.data.AI_PROVIDER === 'gemini' && !parsed.data.GEMINI_API_KEY.trim()) {
+  throw new Error('GEMINI_API_KEY is required when AI_PROVIDER=gemini.');
+}
+
 if (parsed.data.NODE_ENV === 'production' && parsed.data.EMAIL_DELIVERY === 'console') {
   throw new Error('EMAIL_DELIVERY=console is not allowed in production. Configure a mail provider.');
 }
@@ -46,6 +50,9 @@ if (parsed.data.NODE_ENV === 'production') {
   const placeholder = (v) => /replace-with/i.test(v);
   if (placeholder(parsed.data.JWT_ACCESS_SECRET) || placeholder(parsed.data.JWT_REFRESH_SECRET)) {
     throw new Error('Production JWT secrets must be generated, not copied from .env.example.');
+  }
+  if (parsed.data.AI_PROVIDER === 'gemini' && placeholder(parsed.data.GEMINI_API_KEY)) {
+    throw new Error('Production GEMINI_API_KEY must be configured, not copied from .env.example.');
   }
   if (parsed.data.JWT_ACCESS_SECRET === parsed.data.JWT_REFRESH_SECRET) {
     throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different.');

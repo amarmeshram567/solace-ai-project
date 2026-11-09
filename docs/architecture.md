@@ -9,7 +9,7 @@ Mobile app (Expo, JavaScript)
 Express API  /api/v1   ── JWT auth, Zod validation, rate limits
    │
    ├── PostgreSQL (Neon) via Prisma
-   └── AI service ── provider interface ── Ollama (self-hosted Qwen / Llama)
+   └── AI service ── provider interface ── Google Gemini
 ```
 
 The mobile app holds no secrets. Its only configuration is `EXPO_PUBLIC_API_URL`.

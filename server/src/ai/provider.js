@@ -1,31 +1,24 @@
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 
-/**
- * AI provider contract. Every provider implements:
- *   name: string
- *   health(): Promise<boolean>
- *   chat(messages, { signal }): Promise<string>
- *
- * messages: [{ role: 'system' | 'user' | 'assistant', content: string }]
- *
- * Providers must throw AppError(503, 'AI_UNAVAILABLE', ...) on any failure so the
- * chat route can show an honest message. They must never return canned text
- * as if it came from the model.
- */
 
 const UNAVAILABLE = 'Zen Monk is unavailable right now. Please try again in a moment.';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-export class OllamaProvider {
-  constructor({ baseUrl, model }) {
-    this.name = `ollama:${model}`;
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+export class GeminiProvider {
+  constructor({ apiKey, model }) {
+    this.name = `gemini:${model}`;
+    this.apiKey = apiKey;
     this.model = model;
   }
 
+
   async health() {
     try {
-      const res = await fetch(`${this.baseUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${GEMINI_API_BASE}/${encodeURIComponent(this.model)}`, {
+        headers: { 'x-goog-api-key': this.apiKey },
+        signal: AbortSignal.timeout(3000),
+      });
       return res.ok;
     } catch {
       return false;
@@ -35,28 +28,65 @@ export class OllamaProvider {
   async chat(messages, { signal } = {}) {
     let res;
     try {
-      res = await fetch(`${this.baseUrl}/api/chat`, {
+      const systemInstruction = messages
+        .filter((message) => message.role === 'system')
+        .map((message) => message.content)
+        .join('\n\n');
+      const contents = messages
+        .filter((message) => message.role !== 'system')
+        .map((message) => ({
+          role: message.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: message.content }],
+        }));
+
+      res = await fetch(`${GEMINI_API_BASE}/${encodeURIComponent(this.model)}:generateContent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify({
-          model: this.model,
-          messages,
-          stream: false,
-          options: { temperature: 0.7, num_predict: 400 },
+          ...(systemInstruction ? { systemInstruction: { parts: [{ text: systemInstruction }] } } : {}),
+          contents,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 400 },
         }),
         signal: signal ?? AbortSignal.timeout(60_000),
       });
     } catch {
+      console.error('[ai:gemini] request failed before receiving a response');
       throw new AppError(503, 'AI_UNAVAILABLE', UNAVAILABLE);
     }
 
     if (!res.ok) {
+      let upstreamDetails = '';
+      try {
+        const error = await res.json();
+        const status = error?.error?.status;
+        const message = error?.error?.message;
+        if (typeof status === 'string') upstreamDetails += ` (${status})`;
+        if (typeof message === 'string') upstreamDetails += `: ${message}`;
+      } catch {
+        // The HTTP status is still useful if Gemini returned a non-JSON response.
+      }
+      console.error(`[ai:gemini] request failed: HTTP ${res.status}${upstreamDetails}`);
       throw new AppError(503, 'AI_UNAVAILABLE', UNAVAILABLE);
     }
 
-    const json = await res.json();
-    const content = json?.message?.content?.trim();
+    let json;
+    try {
+      json = await res.json();
+    } catch {
+      console.error('[ai:gemini] response was not valid JSON');
+      throw new AppError(503, 'AI_UNAVAILABLE', UNAVAILABLE);
+    }
+    const content = json?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text ?? '')
+      .join('')
+      .trim();
     if (!content) {
+      const finishReason = json?.candidates?.[0]?.finishReason;
+      const blockReason = json?.promptFeedback?.blockReason;
+      console.error('[ai:gemini] response contained no text:', {
+        ...(typeof finishReason === 'string' ? { finishReason } : {}),
+        ...(typeof blockReason === 'string' ? { blockReason } : {}),
+      });
       throw new AppError(503, 'AI_UNAVAILABLE', UNAVAILABLE);
     }
     return content;
@@ -67,5 +97,5 @@ export function createAiProvider() {
   if (env.AI_PROVIDER === 'disabled') {
     return null;
   }
-  return new OllamaProvider({ baseUrl: env.OLLAMA_BASE_URL, model: env.OLLAMA_MODEL });
+  return new GeminiProvider({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL });
 }

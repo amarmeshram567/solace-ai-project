@@ -20,7 +20,7 @@ Set these in the host environment. Never commit them.
 | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | Two different random values, at least 64 characters each. The server refuses to start if these still contain the example placeholder text |
 | `CORS_ORIGINS` | Only the origins you need. Native apps do not send an Origin header |
 | `EMAIL_DELIVERY` | `disabled` until a mail provider is wired in. The server refuses `console` in production |
-| `AI_PROVIDER`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | Point at the hosted model, or `disabled` to return an honest 503 from chat |
+| `AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL` | Keep the Gemini key in the server environment; use `disabled` to return an honest 503 from chat |
 | `JOBS_ENABLED` | `true` on **one** instance only |
 | `PUSH_DELIVERY` | `expo` once the EAS project ID is set in the app build |
 
