@@ -217,6 +217,7 @@ export default function Onboarding() {
             </Text>
             <ArrowRight size={16} color="#FAF8F5" />
           </TouchableOpacity>
+
         </View>
       </View>
     </SafeAreaView>

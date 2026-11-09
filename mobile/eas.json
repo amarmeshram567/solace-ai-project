@@ -17,7 +17,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "REPLACE_WITH_HTTPS_API_URL/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://solace-ai-servic.vercel.app/api/v1"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "REPLACE_WITH_HTTPS_API_URL/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://solace-ai-servic.vercel.app/api/v1"
       }
     }
   },
